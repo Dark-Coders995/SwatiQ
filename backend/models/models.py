@@ -2,7 +2,7 @@ from models.database import db
 from datetime import date, datetime
 
 class Medicine(db.Model):
-    __tablename__ = 'Medicine'
+    __tablename__ = 'medicines'
     id = db.Column(db.Integer , primary_key = True , autoincrement = True)
     name = db.Column(db.String(255) , nullable=False)
     generic_name = db.Column(db.String(255) , nullable=False)

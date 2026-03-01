@@ -1,0 +1,135 @@
+.inv-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.inv-title {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.inv-subtitle {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.inv-top-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.inv-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 980px) {
+  .inv-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .inv-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inv-table-card {
+  border-radius: 18px;
+  border: 1px solid var(--color-border-subtle);
+  background: white;
+  padding: 14px;
+}
+
+.inv-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.inv-table-title {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.inv-filters {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.inv-table-wrap {
+  margin-top: 12px;
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-subtle);
+}
+
+.inv-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 1060px;
+}
+
+.inv-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  text-align: left;
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.inv-table tbody td {
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 12px;
+  color: var(--color-text-main);
+  vertical-align: middle;
+  background: white;
+}
+
+.inv-table tbody tr:hover td {
+  background: #fbfdff;
+}
+
+.inv-table .num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.inv-table .strong {
+  font-weight: 700;
+}
+
+.inv-table .actions {
+  white-space: nowrap;
+}
+
+.inv-empty {
+  text-align: center;
+  padding: 18px 10px;
+  color: var(--color-text-muted);
+}
+
+.inv-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+

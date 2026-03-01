@@ -1,0 +1,34 @@
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.status-badge--active {
+  background: #ecfdf3;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.status-badge--low {
+  background: #fff7ed;
+  color: #c05621;
+  border-color: #fed7aa;
+}
+
+.status-badge--expired {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.status-badge--out {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #e5e7eb;
+}
+
