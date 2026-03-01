@@ -1,0 +1,619 @@
+openapi: 3.0.3
+info:
+  title: Pharmacy Inventory & Dashboard API
+  version: 1.0.0
+  description: |
+    Backend API for the pharmacy inventory and sales dashboard.
+    Exposes inventory management and analytics endpoints under the `/api` prefix.
+
+servers:
+  - url: https://pharmacy-backend.onrender.com
+    description: Production (Render.com) backend
+  - url: http://localhost:5000
+    description: Local development
+
+tags:
+  - name: Inventory
+    description: Manage medicines and inventory status
+  - name: Dashboard
+    description: Sales and inventory dashboard metrics
+
+paths:
+  /api/inventory/overview:
+    get:
+      tags: [Inventory]
+      summary: Get inventory overview
+      description: Returns high-level summary metrics for the entire inventory.
+      responses:
+        '200':
+          description: Inventory overview returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/InventoryOverview'
+                  error:
+                    $ref: '#/components/schemas/NullableApiError'
+                required: [success, data, error]
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/inventory/medicines:
+    get:
+      tags: [Inventory]
+      summary: List medicines
+      description: |
+        Returns a filtered list of medicines. If no filters are provided,
+        all medicines are returned ordered by name.
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: >
+            Free-text search across `name`, `generic_name`, and `batch_no`.
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/MedicineStatus'
+          description: Filter by computed medicine status.
+        - in: query
+          name: category
+          schema:
+            type: string
+          description: Filter by medicine category.
+      responses:
+        '200':
+          description: Medicines list returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/MedicinesList'
+                  error:
+                    $ref: '#/components/schemas/NullableApiError'
+                required: [success, data, error]
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    post:
+      tags: [Inventory]
+      summary: Create medicine
+      description: Creates a new medicine in the inventory.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicineCreatePayload'
+      responses:
+        '201':
+          description: Medicine created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Medicine'
+                  error:
+                    $ref: '#/components/schemas/NullableApiError'
+                required: [success, data, error]
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/inventory/medicines/{medicine_id}:
+    put:
+      tags: [Inventory]
+      summary: Update medicine
+      description: Updates an existing medicine by ID. All fields are optional.
+      parameters:
+        - in: path
+          name: medicine_id
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the medicine.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicineUpdatePayload'
+      responses:
+        '200':
+          description: Medicine updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Medicine'
+                  error:
+                    $ref: '#/components/schemas/NullableApiError'
+                required: [success, data, error]
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/inventory/medicines/{medicine_id}/status:
+    patch:
+      tags: [Inventory]
+      summary: Override medicine status
+      description: |
+        Overrides the computed status of a medicine. The new status is stored in
+        `status_override` and the final `status` is recomputed server-side.
+      parameters:
+        - in: path
+          name: medicine_id
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the medicine.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  $ref: '#/components/schemas/MedicineStatus'
+              required: [status]
+      responses:
+        '200':
+          description: Medicine status updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Medicine'
+                  error:
+                    $ref: '#/components/schemas/NullableApiError'
+                required: [success, data, error]
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/dashboard/today-sales-summary:
+    get:
+      tags: [Dashboard]
+      summary: Get today's sales summary
+      description: Returns aggregated sales metrics for the current day.
+      responses:
+        '200':
+          description: Sales summary returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/TodaySalesSummary'
+                  error:
+                    $ref: '#/components/schemas/NullableApiError'
+                required: [success, data, error]
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/dashboard/items-sold-today:
+    get:
+      tags: [Dashboard]
+      summary: Get count of items sold today
+      description: Returns the total number of items sold during the current day.
+      responses:
+        '200':
+          description: Items sold count returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ItemsSoldToday'
+                  error:
+                    $ref: '#/components/schemas/NullableApiError'
+                required: [success, data, error]
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/dashboard/low-stock-items:
+    get:
+      tags: [Dashboard]
+      summary: Get low stock items
+      description: Returns medicines currently marked as `low_stock`.
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            default: 5
+          description: Maximum number of low stock items to return.
+      responses:
+        '200':
+          description: Low stock items returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/LowStockSummary'
+                  error:
+                    $ref: '#/components/schemas/NullableApiError'
+                required: [success, data, error]
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/dashboard/purchase-orders-summary:
+    get:
+      tags: [Dashboard]
+      summary: Get purchase orders summary
+      description: Returns pending purchase order count and total value of all purchase orders.
+      responses:
+        '200':
+          description: Purchase orders summary returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PurchaseOrdersSummary'
+                  error:
+                    $ref: '#/components/schemas/NullableApiError'
+                required: [success, data, error]
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/dashboard/recent-sales:
+    get:
+      tags: [Dashboard]
+      summary: Get recent sales
+      description: Returns a list of the most recent sales, ordered by creation time (most recent first).
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            default: 5
+          description: Maximum number of recent sales to return.
+      responses:
+        '200':
+          description: Recent sales returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RecentSale'
+                  error:
+                    $ref: '#/components/schemas/NullableApiError'
+                required: [success, data, error]
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+components:
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code.
+          example: validation_error
+        message:
+          type: string
+          description: Human-readable error message.
+          example: Invalid request body.
+        details:
+          description: Optional structured error details (field errors, etc.).
+          nullable: true
+      required: [code, message]
+
+    NullableApiError:
+      allOf:
+        - $ref: '#/components/schemas/ApiError'
+      nullable: true
+
+    MedicineStatus:
+      type: string
+      description: Computed inventory status of a medicine.
+      enum: [active, low_stock, expired, out_of_stock]
+
+    Medicine:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        generic_name:
+          type: string
+        category:
+          type: string
+        batch_no:
+          type: string
+        expiry_date:
+          type: string
+          format: date
+        quantity:
+          type: integer
+        cost_price:
+          type: number
+          format: float
+        mrp:
+          type: number
+          format: float
+        supplier:
+          type: string
+        status:
+          $ref: '#/components/schemas/MedicineStatus'
+      required:
+        - id
+        - name
+        - generic_name
+        - category
+        - batch_no
+        - expiry_date
+        - quantity
+        - cost_price
+        - mrp
+        - supplier
+        - status
+
+    InventoryOverview:
+      type: object
+      properties:
+        total_items:
+          type: integer
+        active_stock:
+          type: integer
+        low_stock:
+          type: integer
+        total_value:
+          type: number
+          format: float
+      required: [total_items, active_stock, low_stock, total_value]
+
+    MedicinesList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Medicine'
+        total:
+          type: integer
+      required: [items, total]
+
+    MedicineCreatePayload:
+      type: object
+      description: Request payload for creating a medicine.
+      properties:
+        name:
+          type: string
+        generic_name:
+          type: string
+        category:
+          type: string
+        batch_no:
+          type: string
+        expiry_date:
+          type: string
+          format: date
+        quantity:
+          type: integer
+          minimum: 0
+        cost_price:
+          type: number
+          format: float
+          minimum: 0
+        mrp:
+          type: number
+          format: float
+          minimum: 0
+        supplier:
+          type: string
+      required:
+        - name
+        - generic_name
+        - category
+        - batch_no
+        - expiry_date
+        - quantity
+        - cost_price
+        - mrp
+        - supplier
+
+    MedicineUpdatePayload:
+      type: object
+      description: Request payload for updating a medicine. All fields are optional.
+      properties:
+        name:
+          type: string
+        generic_name:
+          type: string
+        category:
+          type: string
+        batch_no:
+          type: string
+        expiry_date:
+          type: string
+          format: date
+        quantity:
+          type: integer
+          minimum: 0
+        cost_price:
+          type: number
+          format: float
+          minimum: 0
+        mrp:
+          type: number
+          format: float
+          minimum: 0
+        supplier:
+          type: string
+
+    TodaySalesSummary:
+      type: object
+      properties:
+        total_amount:
+          type: number
+          format: float
+        change_percent:
+          type: number
+          format: float
+        orders_count:
+          type: integer
+      required: [total_amount, change_percent, orders_count]
+
+    ItemsSoldToday:
+      type: object
+      properties:
+        items_sold:
+          type: integer
+      required: [items_sold]
+
+    LowStockItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        quantity:
+          type: integer
+      required: [id, name, quantity]
+
+    LowStockSummary:
+      type: object
+      properties:
+        count:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LowStockItem'
+      required: [count, items]
+
+    PurchaseOrdersSummary:
+      type: object
+      properties:
+        pending_count:
+          type: integer
+        total_value:
+          type: number
+          format: float
+      required: [pending_count, total_value]
+
+    RecentSale:
+      type: object
+      properties:
+        id:
+          type: integer
+        invoice_no:
+          type: string
+        patient_name:
+          type: string
+        items_count:
+          type: integer
+        payment_method:
+          type: string
+        total_amount:
+          type: number
+          format: float
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - invoice_no
+        - patient_name
+        - items_count
+        - payment_method
+        - total_amount
+        - created_at
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          nullable: true
+        error:
+          $ref: '#/components/schemas/ApiError'
+      required: [success, data, error]
+
+  responses:
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Request could not be processed due to validation errors.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Unexpected server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
