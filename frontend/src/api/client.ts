@@ -4,14 +4,17 @@ export type ApiError = {
   details?: unknown
 }
 
+
 type ApiResponse<T> = {
   success: boolean
   data: T | null
   error: ApiError | null
 }
 
+const BASE_URL = import.meta.env.VITE_API_URL || '';
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(path, {
+const fullUrl = `${BASE_URL}${path}`
+  const res = await fetch(fullUrl, {
     headers: {
       'Content-Type': 'application/json',
       ...(options.headers || {}),
